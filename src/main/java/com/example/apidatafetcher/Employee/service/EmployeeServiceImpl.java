@@ -3,6 +3,7 @@ package com.example.apidatafetcher.Employee.service;
 import com.example.apidatafetcher.Employee.entity.Employee;
 import com.example.apidatafetcher.Employee.repository.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,6 +14,9 @@ public class EmployeeServiceImpl implements EmployeeService{
     @Autowired
     private EmployeeRepository employeeRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Override
     public List<Employee> getAllEmployees() {
         return employeeRepository.findAll();
@@ -20,6 +24,7 @@ public class EmployeeServiceImpl implements EmployeeService{
 
     @Override
     public Employee addEmployees(Employee employee) {
+        employee.setPassword(passwordEncoder.encode(employee.getPassword()));
         return employeeRepository.save(employee);
     }
 
@@ -37,10 +42,12 @@ public class EmployeeServiceImpl implements EmployeeService{
         existingEmployee.setEmail(employee.getEmail());
         existingEmployee.setDepartment(employee.getDepartment());
         existingEmployee.setSalary(employee.getSalary());
+        // Only update password if user provided a new one
+        if (employee.getPassword() != null && !employee.getPassword().isEmpty()) {
+            existingEmployee.setPassword(passwordEncoder.encode(employee.getPassword()));
+        }
         return employeeRepository.save(existingEmployee);
-
     }
-
     @Override
     public String deletingEmployee(long id) {
         employeeRepository.deleteById(id);
